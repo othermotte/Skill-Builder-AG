@@ -16,6 +16,7 @@ import {
 } from '../services/firebase';
 import { ScenarioForm } from './ScenarioForm';
 import { INITIAL_SKILLS } from '../constants';
+import { AdminUsage } from './AdminUsage';
 
 interface AdminAnalyticsProps {
     users: User[];
@@ -26,7 +27,7 @@ interface AdminAnalyticsProps {
 }
 
 export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({ users, sessions, scenarios, skills, onRefresh }) => {
-    const [activeTab, setActiveTab] = useState<'analytics' | 'scenarios' | 'global' | 'users' | 'feedback' | 'library'>('analytics');
+    const [activeTab, setActiveTab] = useState<'analytics' | 'usage' | 'scenarios' | 'global' | 'users' | 'feedback' | 'library'>('analytics');
     const [editingScenario, setEditingScenario] = useState<Partial<Scenario> | null>(null);
 
     const [globalFacilitator, setGlobalFacilitator] = useState("");
@@ -136,7 +137,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({ users, sessions,
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-gray-100 pb-6">
                 <nav className="flex space-x-1 bg-gray-100 p-1 rounded-2xl border border-gray-200 overflow-x-auto max-w-full">
-                    {['analytics', 'scenarios', 'library', 'global', 'users', 'feedback'].map((tab) => (
+                    {['analytics', 'usage', 'scenarios', 'library', 'global', 'users', 'feedback'].map((tab) => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab as any)}
@@ -147,6 +148,8 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({ users, sessions,
                     ))}
                 </nav>
             </div>
+
+            {activeTab === 'usage' && <AdminUsage scenarios={scenarios} />}
 
             {activeTab === 'library' && library && (
                 <div className="bg-white rounded-[3rem] p-10 border border-gray-100 shadow-sm animate-in fade-in duration-500 space-y-12">

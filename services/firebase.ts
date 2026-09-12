@@ -22,6 +22,8 @@ import {
     orderBy,
     limit,
     addDoc,
+    documentId,
+    startAfter,
 } from 'firebase/firestore';
 
 import { auth, db } from '../firebaseConfig';
@@ -180,6 +182,52 @@ export const getUser = async (uid: string, details?: { email: string }): Promise
 export const getAllUsers = async (): Promise<User[]> => {
     const snapshot = await getDocs(collection(db, 'users'));
     return snapshot.docs.map(doc => doc.data() as User);
+};
+
+export interface AdminUsageRecord {
+    id: string;
+    userId: string;
+    scenarioId: string;
+    microSkillId?: string;
+    kind: 'scenario' | 'micro-skill';
+    timestamp: string;
+    completedAt?: string;
+    completed: boolean;
+    medium?: 'voice' | 'text';
+}
+
+// Read existing activity without retaining transcripts or feedback in the usage view.
+// Page through every record so the report is not capped at 100 sessions.
+export const getAdminUsageRecords = async (): Promise<AdminUsageRecord[]> => {
+    const readCollection = async (name: string, kind: AdminUsageRecord['kind']) => {
+        const records: AdminUsageRecord[] = [];
+        let cursor: Parameters<typeof startAfter>[0] | undefined;
+        while (true) {
+            const constraints = [orderBy(documentId()), ...(cursor ? [startAfter(cursor)] : []), limit(250)];
+            const page = await getDocs(query(collection(db, name), ...constraints));
+            page.docs.forEach(snapshot => {
+                const data = snapshot.data();
+                records.push({
+                    id: snapshot.id,
+                    userId: data.userId,
+                    scenarioId: data.scenarioId,
+                    microSkillId: data.microSkillId,
+                    kind,
+                    timestamp: data.timestamp,
+                    completedAt: data.completedAt,
+                    completed: kind === 'scenario' ? data.status === 'completed' : !!data.completedAt,
+                    medium: data.interactionMedium,
+                });
+            });
+            if (page.size < 250) return records;
+            cursor = page.docs[page.docs.length - 1];
+        }
+    };
+    const [sessions, attempts] = await Promise.all([
+        readCollection('practiceSessions', 'scenario'),
+        readCollection('practiceAttempts', 'micro-skill'),
+    ]);
+    return [...sessions, ...attempts];
 };
 
 export const logEvent = async (userId: string, eventType: string, payload: any) => {
