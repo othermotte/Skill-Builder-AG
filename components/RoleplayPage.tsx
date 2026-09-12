@@ -352,6 +352,14 @@ ${memoryList}
             </h1>
           </div>
 
+          {mode === 'diagnostic' && (
+            <div className="flex-none mb-6 bg-gray-50 border border-gray-100 rounded-3xl p-6 shadow-inner">
+              <p className="text-sm text-gray-600 leading-relaxed font-medium whitespace-pre-wrap">
+                {scenario.description}
+              </p>
+            </div>
+          )}
+
           {textStatus !== 'active' ? (
             <div className="flex-grow flex flex-col items-center justify-center text-center max-w-md mx-auto pb-20">
               {textStatus === 'connecting' ? (
@@ -381,7 +389,7 @@ ${memoryList}
             </div>
           ) : (
             <>
-              <div className="flex-grow min-h-0 overflow-y-auto rounded-3xl bg-gray-50 border border-gray-100 px-4 py-6 md:p-8 space-y-6" aria-live="polite">
+              <div className="flex-grow min-h-0 max-h-[50dvh] overflow-y-auto rounded-3xl bg-gray-50 border border-gray-100 px-4 py-6 md:p-8 space-y-6" aria-live="polite">
                 {textTranscript.map((entry, index) => (
                   <div key={`${entry.speaker}-${index}`} className={`flex ${entry.speaker === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[88%] md:max-w-[75%] ${entry.speaker === 'user' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-800 border border-gray-200'} rounded-3xl px-5 py-4 shadow-sm`}>
